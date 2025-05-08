@@ -1,110 +1,164 @@
 # DSP Build 构建工具
 
-## 项目概述
+DSP Build 是一个为数字服务平台（Digital Service Platform，DSP）项目设计的综合构建框架，提供依赖管理、版本控制和构建流程的工具与实用程序。
 
-DSP Build 是一个为大型复杂项目设计的统一构建框架，旨在解决大型软件项目在依赖管理、版本控制和构建过程中遇到的一系列问题。
+## 解决的核心问题
 
-### 解决的核心问题
+DSP Build 主要解决大型复杂项目中的依赖版本管理问题：
 
-1. **依赖版本管理混乱**：在大型项目中，不同模块可能使用同一依赖的不同版本，导致版本冲突和不兼容问题。DSP Build 通过集中式的 BOM（物料清单）管理，确保所有模块使用一致的依赖版本。
+- **集中式版本控制**：通过 BOM（物料清单）管理确保所有模块使用一致的依赖版本
+- **自动化版本更新**：基于集中定义的版本自动更新项目依赖
+- **跨项目协调**：管理多个相关项目之间的版本兼容性
+- **简化发布流程**：通过自动化任务简化发布工作流
 
-2. **构建过程复杂**：大型项目的构建过程通常涉及多个步骤和工具，DSP Build 提供统一的构建流程和命令行工具，简化构建过程。
+### 相比传统方法的优势
 
-3. **版本发布困难**：项目发布时需要协调多个组件的版本，DSP Build 提供自动化的版本更新和发布机制，减少人为错误。
+- **单一事实来源**：与手动版本管理不同，DSP Build 在中央仓库维护版本信息
+- **减少冲突**：防止大型项目中常见的依赖版本冲突
+- **自动化工作流**：消除容易出错的手动版本更新
+- **跨团队标准化**：在开发团队间强制执行一致的构建标准
 
-4. **跨团队协作障碍**：不同团队可能使用不同的构建规范和流程，DSP Build 提供统一的构建标准，促进团队协作。
+## 项目模块
 
-## 项目结构
+### dsp-build-core
 
-DSP Build 项目由以下模块组成：
+包含管理发布基础逻辑的核心模块：
 
-- **dsp-parent**：管理项目的插件配置
-- **dsp-dependencies**：管理项目的依赖关系
-- **dsp-build-core**：实现发布的核心逻辑
-- **dsp-build-plugin**：Maven 插件实现
-- **dsp-build-rule**：自定义构建规则
-- **dsp-build-extension**：构建扩展
-- **dsp-build-tool**：命令行任务设置和流程执行
-
-## dsp-build-core 核心模块
-
-`dsp-build-core` 模块包含管理 DSP 项目发布的核心逻辑，提供以下基本功能：
-
-- 从代码仓库发现和解析 BOM（物料清单）信息
-- 根据 BOM 信息更新项目依赖
+- 从仓库发现和解析 BOM 信息
+- 基于 BOM 信息更新项目依赖
 - 跨项目管理版本信息
 
-### 核心组件
+### dsp-build-extension
 
-- **Releaser**：编排发布过程的主类
-- **BomRepository**：表示包含版本信息的仓库
-- **Bom**：表示版本兼容性信息
-- **ProjectUpdater**：用于使用新版本信息更新项目文件的接口
-- **MavenUpdater**：更新 Maven 项目的实现
+将 DSP Build 功能直接集成到 Maven 构建过程的 Maven 扩展：
+
+- 在构建过程中自动更新项目依赖
+- 无需显式插件配置即可应用版本信息
+- 支持 Git 和 Maven 仓库作为 BOM 信息源
+
+### dsp-build-plugin
+
+Maven 插件实现，提供：
+
+- 用于版本管理的自定义 Maven 目标
+- 与现有构建流程集成
+- 可配置的版本更新行为
+
+### dsp-build-tool
+
+用于执行构建和发布任务的命令行界面：
+
+- 从仓库发现 BOM 信息
+- 使用版本信息更新项目 POM
+- 将版本信息注册回仓库
+
+## 使用指南
+
+DSP Build 提供三种不同的使用方式：Maven 扩展、Maven 插件和命令行工具。您可以根据项目需求选择最适合的方式。
 
 ### 配置
 
-核心模块使用配置文件 (`build.yml`) 定义：
-
-- Git 仓库信息
-- BOM 分支和文件位置
-- 版本注册设置
-
-## dsp-build-tool 工具模块
-
-`dsp-build-tool` 模块提供用于执行构建和发布任务的命令行界面。它使用 Spring Boot 创建一个 CLI 应用程序，可以：
-
-- 从仓库发现 BOM 信息
-- 使用版本信息更新项目的 POM 文件
-- 将版本信息注册回仓库
-
-### 核心组件
-
-- **ReleaserCommandLineRunner**：CLI 应用程序的入口点
-- **ReleaserGoal**：定义可以执行的目标的接口
-- **TasksFactory**：根据选项创建任务链
-- **TasksRunner**：使用 Spring Batch 执行任务链
-- **发布任务**：
-  - **DiscoverBomReleaseTask**：发现 BOM 信息
-  - **UpdatingPomsReleaseTask**：使用版本信息更新 POM
-  - **RegisterBomReleaseTask**：注册版本信息
-
-### 使用方法
-
-工具可以使用以下命令执行：
-
-```
-cli [<goal>] [options]
-```
-
-其中 `goal` 是要执行的操作（例如，release），`options` 是附加参数。
-
-## 配置
-
-DSP Build 系统可以使用属性文件进行配置：
-
-### releaser.properties
+在项目根目录创建 `releaser.properties` 文件：
 
 ```properties
+# Git 仓库配置
 releaser.repository.source=GIT
 releaser.repository.url=git@gitlab.com:example/buildconfig.git
 releaser.repository.coordinate=pom.xml
 releaser.repository.baseline=1.0
+
+# 或者 Maven 仓库配置
+# releaser.repository.source=MAVEN
+# releaser.repository.url=https://mirrors.huaweicloud.com/repository/maven/
+# releaser.repository.coordinate=com.example:bom-project
+# releaser.repository.baseline=1.0
 ```
 
-## 开发
+BOM 配置通过 Git 仓库中的 POM 文件或 Maven 仓库中的 BOM 项目定义，例如：
 
-### 构建项目
+```xml
+<project>
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.example</groupId>
+    <artifactId>bom-project</artifactId>
+    <version>1.0</version>
+    <packaging>pom</packaging>
+    
+    <properties>
+        <!-- 框架版本 -->
+        <spring.version>5.3.20</spring.version>
+        <springboot.version>2.7.2</springboot.version>
+        
+        <!-- 内部组件版本 -->
+        <component-a.version>1.2.3</component-a.version>
+        <component-b.version>2.3.4</component-b.version>
+    </properties>
+    
+    <dependencyManagement>
+        <dependencies>
+            <!-- 依赖管理配置 -->
+        </dependencies>
+    </dependencyManagement>
+</project>
+```
 
-使用以下命令构建项目：
+### 方式一：使用 Maven 扩展
+
+将扩展添加到项目的 `.mvn/extensions.xml` 文件中：
+
+```xml
+<extensions>
+  <extension>
+    <groupId>com.sample</groupId>
+    <artifactId>dsp-build-extension</artifactId>
+    <version>1.0.0</version>
+  </extension>
+</extensions>
+```
+
+使用此方式，Maven 构建过程会自动应用版本管理，无需额外配置。
+
+### 方式二：使用 Maven 插件
+
+将插件添加到项目的 `pom.xml` 文件中：
+
+```xml
+<build>
+  <plugins>
+    <plugin>
+      <groupId>com.sample</groupId>
+      <artifactId>dsp-build-plugin</artifactId>
+      <version>1.0.0</version>
+    </plugin>
+  </plugins>
+</build>
+```
+
+然后可以执行插件目标：
+
+```bash
+mvn dsp-build:update-versions
+```
+
+### 方式三：使用命令行工具
+
+执行 CLI 工具：
+
+```bash
+java -jar dsp-build-tool.jar release
+```
+
+或使用自定义选项：
+
+```bash
+java -jar dsp-build-tool.jar release --repository.url=git@github.com:example/config.git
+```
+
+## 构建项目
 
 ```bash
 mvn clean install
 ```
-
-### 运行测试
-
-集成测试位于各个模块的 `src/it` 目录中。
 
 ## 许可证
 
