@@ -1,0 +1,7 @@
+FROM alpine
+
+RUN wget -q https://download.docker.com/linux/static/stable/x86_64/docker-20.10.3.tgz && tar xzvf docker-20.10.3.tgz --strip 1   -C /usr/bin
+RUN mkdir -p ~/.docker/cli-plugins
+ADD buildx-v0.9.1.linux-amd64 /root/.docker/cli-plugins/docker-buildx
+RUN chmod +x ~/.docker/cli-plugins/docker-buildx
+RUN docker buildx version

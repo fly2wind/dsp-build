@@ -1,0 +1,10 @@
+git:
+  url: git@github.com:fly2wind/build-config.git
+  branch: main
+bom:
+  branch: main
+  file: build.properties
+register:
+  - key: abc.version
+    path: build.properties
+    artifact: com.sample:dsp-boot
